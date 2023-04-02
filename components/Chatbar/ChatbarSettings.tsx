@@ -53,7 +53,7 @@ export const ChatbarSettings: FC<Props> = ({
         }
       />
 
-      <Key apiKey={apiKey} onApiKeyChange={onApiKeyChange} />
+      {/* <Key apiKey={apiKey} onApiKeyChange={onApiKeyChange} /> */}
     </div>
   );
 };

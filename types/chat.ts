@@ -14,6 +14,12 @@ export interface ChatBody {
   prompt: string;
 }
 
+export interface WindowChatBody {
+  messages: Message[];
+  ai: any;
+  prompt: string;
+}
+
 export interface Conversation {
   id: string;
   name: string;

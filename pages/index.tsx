@@ -2,7 +2,8 @@ import { Chat } from '@/components/Chat/Chat';
 import { Chatbar } from '@/components/Chatbar/Chatbar';
 import { Navbar } from '@/components/Mobile/Navbar';
 import { Promptbar } from '@/components/Promptbar/Promptbar';
-import { ChatBody, Conversation, Message } from '@/types/chat';
+
+import { ChatBody, Conversation, Message, WindowChatBody } from '@/types/chat';
 import { KeyValuePair } from '@/types/data';
 import { ErrorMessage } from '@/types/error';
 import { LatestExportFormat, SupportedExportFormats } from '@/types/export';
@@ -35,22 +36,105 @@ import Head from 'next/head';
 import { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
+// Here's the JavaScript API for the window.ai object that gets injected in every webpage:
+
+// Get completions and chat reponses with this:
+// async ai.getCompletion(
+//     input: Input,
+//     options: CompletionOptions = {}
+//   ): Promise<Output>
+
+
+// And get the user's current model like this (only in case you want to show in your UI):
+// async getCurrentModel(): Promise<LLM>
+
+
+// Putting the types in the thread
+// alex — Today at 4:09 AM
+// export type Input =
+//   | {
+//       prompt: string
+//     }
+//   | {
+//       messages: ChatMessage[]
+//     }
+
+// export type Output =
+//   | {
+//       text: string
+//     }
+//   | {
+//       message: ChatMessage
+//     }
+
+
+// interface CompletionOptions {
+//   // If specified, partial updates will be streamed to this handler as they become available,
+//   // and only the first partial update will be returned by the Promise.
+//   onStreamResult?: (result: Output | null, error: string | null) => unknown
+//   // What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+//   // make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+//   // Different models have different defaults.
+//   temperature?: number
+//   // How many chat completion choices to generate for each input message. Defaults to 1.
+//   // TODO n?: number
+//   // The maximum number of tokens to generate in the chat completion. Defaults to infinity, but the
+//   // total length of input tokens and generated tokens is limited by the model's context length.
+//   maxTokens?: number
+//   // Sequences where the API will stop generating further tokens.
+//   stopSequences?: string[]
+//   // Identifier of the model to use. Defaults to the user's current model, but can be overridden here.
+//   model?: LLM
+// }
+
+
+enum LLM {
+  GPT3 = "openai/gpt3.5",
+  GPTNeo = "together/gpt-neoxt-20B",
+  Cohere = "cohere/xlarge",
+  Local = "local"
+}
+// alex — Today at 4:32 AM
+// ChatMessage follows the OpenAI chatml format:  { role: “system” | “user” | “assistant”, content: string }
+// alex
+//  changed the channel name: 
+// window.ai JavaScript API
+//  — Today at 4:35 AM
 
 interface HomeProps {
   serverSideApiKeyIsSet: boolean;
   defaultModelId: OpenAIModelID;
 }
-
 const Home: React.FC<HomeProps> = ({
   serverSideApiKeyIsSet,
   defaultModelId,
 }) => {
+  //useEffect
+
+  // useEffect(() => {
+  //   (async () => {
+  //     if( !(window as any).ai ) return;
+  //     //messages
+  //     let result = await (window as any).ai.getCompletion(
+  //       {
+  //         messages: [
+  //           { role: 'system', content: 'You are a helpful assistant.' },
+  //           { role: 'user', content: 'Hello' },
+  //         ],
+  //       },
+  //     );
+  //     console.log(result);
+  //   })()
+  // }, [])
+
   const { t } = useTranslation('chat');
 
   // STATE ----------------------------------------------
 
   const [apiKey, setApiKey] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [timer, setTimer] = useState<any>();
+  const [streamIsDone, setStreamIsDone] = useState<boolean>(false);
   const [lightMode, setLightMode] = useState<'dark' | 'light'>('dark');
   const [messageIsStreaming, setMessageIsStreaming] = useState<boolean>(false);
 
@@ -101,37 +185,160 @@ const Home: React.FC<HomeProps> = ({
       setLoading(true);
       setMessageIsStreaming(true);
 
-      const chatBody: ChatBody = {
-        model: updatedConversation.model,
-        messages: updatedConversation.messages,
-        key: apiKey,
-        prompt: updatedConversation.prompt,
-      };
+      // const chatBody: ChatBody = {
+      //   model: updatedConversation.model,
+      //   messages: updatedConversation.messages,
+      //   key: apiKey,
+      //   prompt: updatedConversation.prompt,
+      // };
+      interface WindowAICompletionOptions {
+        // If specified, partial updates will be streamed to this handler as they become available,
+        // and only the first partial update will be returned by the Promise.
+        onStreamResult?: (result: Output | null, error: string | null) => unknown
+        // What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+        // make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+        // Different models have different defaults.
+        temperature?: number
+        // How many chat completion choices to generate for each input message. Defaults to 1.
+        // TODO n?: number
+        // The maximum number of tokens to generate in the chat completion. Defaults to infinity, but the
+        // total length of input tokens and generated tokens is limited by the model's context length.
+        maxTokens?: number
+        // Sequences where the API will stop generating further tokens.
+        stopSequences?: string[]
+        // Identifier of the model to use. Defaults to the user's current model, but can be overridden here.
+        model?: LLM
+      }
+      enum LLM {
+        GPT3 = "openai/gpt3.5",
+        GPTNeo = "together/gpt-neoxt-20B",
+        Cohere = "cohere/xlarge",
+        Local = "local"
+      }
+      type ChatMessage = {
+        role: String,
+        user: String,
+        content: String
+      }
+      type Output = | {
+            text: string
+          } | {
+            message: ChatMessage
+        }
 
-      const controller = new AbortController();
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const options: WindowAICompletionOptions = {
+        temperature: 1,
+        maxTokens: 1000,
+        onStreamResult: (result: Output | null, error: string | null) => {
+          if (error) {
+            console.error(error);
+          } else if (result) {
+            setLoading(false)
+
+            //timer logic
+            if(timer) clearTimeout(timer);
+            setTimer(setTimeout(() => {
+              setMessageIsStreaming(false);
+            }, 2000));
+
+            //get the last message
+            console.log(result)
+            const lastMessage = updatedConversation.messages[
+              updatedConversation.messages.length - 1
+            ];
+            if(lastMessage.role === 'user') {
+              setLoading(false)
+              //if the last message is a user, add the result as a system message
+              updatedConversation.messages = [
+                ...updatedConversation.messages,
+                {
+                  role: 'assistant',
+                  content: (result as any).message.content,
+                },
+              ];
+            } else {
+              //if the last message is a system message, add the result to the last message
+              const updatedMessages: Message[] = updatedConversation.messages.map(
+                (message, index) => {
+                  if (index === updatedConversation.messages.length - 1) {
+                    // if the message is the last message is a user 
+                    return {
+                      ...message,
+                      //we didn't know why this wasn't working :( don't flame us
+                      content: message.content + (result as any).message.content,
+                    };
+                  }
+                  return message;
+                }
+              );
+              updatedConversation = {
+                      ...updatedConversation,
+                      messages: updatedMessages,
+                    };
+            }
+            
+            setSelectedConversation(updatedConversation);
+          }
         },
-        signal: controller.signal,
-        body: JSON.stringify(chatBody),
-      });
+      }; 
+    
 
-      if (!response.ok) {
-        setLoading(false);
-        setMessageIsStreaming(false);
-        toast.error(response.statusText);
-        return;
-      }
+      // const chatBody: ChatBody = {
+      //   model: updatedConversation.model,
+      //   messages: updatedConversation.messages,
+      //   key: apiKey,
+      //   prompt: updatedConversation.prompt,
+      // };
+      // const controller = new AbortController();
+      // console.log({
+      //   messages: [
+      //     {
+      //       role: 'system',
+      //       content: updatedConversation.prompt,
+      //     },
+      //     ...updatedConversation.messages,
+      //   ],
+      //   options,
+      // },)
+      if( !(window as any).ai ) return;
+      console.log(updatedConversation.prompt)
+      console.log(updatedConversation.messages)
+      const response = await (window as any).ai.getCompletion(
+        {
+          messages: [
+            {
+              role: 'system',
+              content: updatedConversation.prompt,
+            },
+            ...updatedConversation.messages,
+          ],
+        },
+        options
+      );
 
-      const data = response.body;
+      // const response = await fetch('/api/chat', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   signal: controller.signal,
+      //   body: JSON.stringify(chatBody),
+      // });
 
-      if (!data) {
-        setLoading(false);
-        setMessageIsStreaming(false);
-        return;
-      }
+      // if (!response.ok) {
+      //   setLoading(false);
+      //   setMessageIsStreaming(false);
+      //   toast.error(response.statusText);
+      //   return;
+      // }
+
+      // const data = response.body;
+
+      // if (!data) {
+      //   setLoading(false);
+      //   setMessageIsStreaming(false);
+      //   return;
+      // }
 
       if (updatedConversation.messages.length === 1) {
         const { content } = message;
@@ -144,130 +351,100 @@ const Home: React.FC<HomeProps> = ({
         };
       }
 
-      setLoading(false);
+      // setLoading(false);
 
-      const reader = data.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-      let isFirst = true;
-      let text = '';
+      // const reader = data.getReader();
+      // const decoder = new TextDecoder();
+      // let done = false;
+      // let isFirst = true;
+      // let text = '';
 
-      while (!done) {
-        if (stopConversationRef.current === true) {
-          controller.abort();
-          done = true;
-          break;
-        }
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-        const chunkValue = decoder.decode(value);
+      // while (!done) {
+      //   if (stopConversationRef.current === true) {
+      //     controller.abort();
+      //     done = true;
+      //     break;
+      //   }
+      //   const { value, done: doneReading } = await reader.read();
+      //   done = doneReading;
+      //   const chunkValue = decoder.decode(value);
 
-        text += chunkValue;
+      //   text += chunkValue;
 
-        if (isFirst) {
-          isFirst = false;
-          const updatedMessages: Message[] = [
-            ...updatedConversation.messages,
-            { role: 'assistant', content: chunkValue },
-          ];
+      //   if (isFirst) {
+      //     isFirst = false;
+      //     const updatedMessages: Message[] = [
+      //       ...updatedConversation.messages,
+      //       { role: 'assistant', content: chunkValue },
+      //     ];
 
-          updatedConversation = {
-            ...updatedConversation,
-            messages: updatedMessages,
-          };
+      //     updatedConversation = {
+      //       ...updatedConversation,
+      //       messages: updatedMessages,
+      //     };
 
-          setSelectedConversation(updatedConversation);
-        } else {
-          const updatedMessages: Message[] = updatedConversation.messages.map(
-            (message, index) => {
-              if (index === updatedConversation.messages.length - 1) {
-                return {
-                  ...message,
-                  content: text,
-                };
-              }
+      //     setSelectedConversation(updatedConversation);
+      //   } else {
+      //     const updatedMessages: Message[] = updatedConversation.messages.map(
+      //       (message, index) => {
+      //         if (index === updatedConversation.messages.length - 1) {
+      //           return {
+      //             ...message,
+      //             content: text,
+      //           };
+      //         }
 
-              return message;
-            },
-          );
+      //         return message;
+      //       },
+      //     );
 
-          updatedConversation = {
-            ...updatedConversation,
-            messages: updatedMessages,
-          };
+      //     updatedConversation = {
+      //       ...updatedConversation,
+      //       messages: updatedMessages,
+      //     };
 
-          setSelectedConversation(updatedConversation);
-        }
-      }
-
-      saveConversation(updatedConversation);
-
-      const updatedConversations: Conversation[] = conversations.map(
-        (conversation) => {
-          if (conversation.id === selectedConversation.id) {
-            return updatedConversation;
-          }
-
-          return conversation;
-        },
-      );
-
-      if (updatedConversations.length === 0) {
-        updatedConversations.push(updatedConversation);
-      }
-
-      setConversations(updatedConversations);
-
-      saveConversations(updatedConversations);
-
-      setMessageIsStreaming(false);
+      //     setSelectedConversation(updatedConversation);
+      //   }
+      // }
     }
   };
 
   // FETCH MODELS ----------------------------------------------
 
-  const fetchModels = async (key: string) => {
-    const error = {
-      title: t('Error fetching models.'),
-      code: null,
-      messageLines: [
-        t(
-          'Make sure your OpenAI API key is set in the bottom left of the sidebar.',
-        ),
-        t('If you completed this step, OpenAI may be experiencing issues.'),
-      ],
-    } as ErrorMessage;
-
-    const response = await fetch('/api/models', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        key,
-      }),
-    });
-
-    if (!response.ok) {
-      try {
-        const data = await response.json();
-        Object.assign(error, {
-          code: data.error?.code,
-          messageLines: [data.error?.message],
-        });
-      } catch (e) {}
-      setModelError(error);
-      return;
-    }
-
-    const data = await response.json();
-
-    if (!data) {
-      setModelError(error);
-      return;
-    }
-
-    setModels(data);
+  // export interface OpenAIModel {
+  //   id: string;
+  //   name: string;
+  //   maxLength: number; // maximum length of a message
+  //   tokenLimit: number;
+  // }
+  
+  const LLMToOpenAIModel = {
+    GPT3: {
+      id: "gpt-3.5-turbo",
+      name: "GPT-3.5",
+      maxLength: 12000,
+      tokenLimit: 3000,
+    },
+  }
+  //TODO support additional models
+  // enum LLM {
+  //   GPT3 = "openai/gpt3.5",
+  //   GPTNeo = "together/gpt-neoxt-20B",
+  //   Cohere = "cohere/xlarge",
+  //   Local = "local"
+  // }
+  const fetchModels = async () => {
+    let model: LLM = await (window as any).ai.getCurrentModel();
+    console.log(model)
+    setModels([
+      {
+        id: "gpt-3.5-turbo",
+        name: model,
+        maxLength: 12000,
+        tokenLimit: 3000,
+      }
+    ]);
+    //TODO: change MaxLength and tokenLimit to be dynamic
     setModelError(null);
   };
 
@@ -548,10 +725,8 @@ const Home: React.FC<HomeProps> = ({
   }, [selectedConversation]);
 
   useEffect(() => {
-    if (apiKey) {
-      fetchModels(apiKey);
-    }
-  }, [apiKey]);
+      fetchModels();
+  }, []);
 
   // ON LOAD --------------------------------------------
 
@@ -562,12 +737,7 @@ const Home: React.FC<HomeProps> = ({
     }
 
     const apiKey = localStorage.getItem('apiKey');
-    if (apiKey) {
-      setApiKey(apiKey);
-      fetchModels(apiKey);
-    } else if (serverSideApiKeyIsSet) {
-      fetchModels('');
-    }
+    fetchModels(apiKey);
 
     if (window.innerWidth < 640) {
       setShowSidebar(false);
@@ -694,7 +864,7 @@ const Home: React.FC<HomeProps> = ({
                 conversation={selectedConversation}
                 messageIsStreaming={messageIsStreaming}
                 apiKey={apiKey}
-                serverSideApiKeyIsSet={serverSideApiKeyIsSet}
+                serverSideApiKeyIsSet={true}
                 defaultModelId={defaultModelId}
                 modelError={modelError}
                 models={models}

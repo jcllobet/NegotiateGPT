@@ -1,6 +1,6 @@
-import { ChatBody, Message } from '@/types/chat';
+import { WindowChatBody, ChatBody, Message } from '@/types/chat';
 import { DEFAULT_SYSTEM_PROMPT } from '@/utils/app/const';
-import { OpenAIError, OpenAIStream } from '@/utils/server';
+import { OpenAIError, OpenAIStream, WindowAIStream } from '@/utils/server';
 import tiktokenModel from '@dqbd/tiktoken/encoders/cl100k_base.json';
 import { Tiktoken, init } from '@dqbd/tiktoken/lite/init';
 // @ts-expect-error
@@ -10,9 +10,9 @@ export const config = {
   runtime: 'edge',
 };
 
-const handler = async (req: Request): Promise<Response> => {
+const WindowAIHandler = async (req: Request): Promise<Response> => {
   try {
-    const { model, messages, key, prompt } = (await req.json()) as ChatBody;
+    const { messages, ai, prompt } = (await req.json()) as WindowChatBody;
 
     await init((imports) => WebAssembly.instantiate(wasm, imports));
     const encoding = new Tiktoken(
@@ -43,8 +43,14 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     encoding.free();
-
-    const stream = await OpenAIStream(model, promptToSend, key, messagesToSend);
+    // export const WindowAIStream = async (
+    //   // model: LLM,
+    //   systemPrompt: string,
+    //   ai: any,
+    //   messages: Message[],
+    // ) => {
+    const stream = await WindowAIStream(promptToSend, ai, messagesToSend);
+    //const stream = await OpenAIStream(model, promptToSend, key, messagesToSend);
 
     return new Response(stream);
   } catch (error) {
@@ -57,4 +63,4 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
-export default handler;
+export default WindowAIHandler;
