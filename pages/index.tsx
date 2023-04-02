@@ -737,7 +737,7 @@ const Home: React.FC<HomeProps> = ({
     }
 
     const apiKey = localStorage.getItem('apiKey');
-    fetchModels(apiKey);
+    fetchModels();
 
     if (window.innerWidth < 640) {
       setShowSidebar(false);
