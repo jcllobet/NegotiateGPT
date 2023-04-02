@@ -124,4 +124,4 @@ We have a live demo of the site hosted on Vercel that you can check out [here] (
 
 ## Contact
 
-If you have any questions, feel free to reach to join the [windowAI discord]() or ping [Yanni}() or [Alex](), co-founder of [WindowAI]() and former CTO of OpenSea.
+If you have any questions, feel free to reach to join the [windowAI discord](https://discord.gg/wZsdGtAp) or ping [Yanni}() or [Alex](), co-founder of [WindowAI]() and former CTO of OpenSea.
