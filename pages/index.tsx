@@ -796,7 +796,7 @@ const Home: React.FC<HomeProps> = ({
   return (
     <>
       <Head>
-        <title>Chatbot UI</title>
+        <title>Chatbot UI with WindowAI</title>
         <meta name="description" content="ChatGPT but better." />
         <meta
           name="viewport"
@@ -813,6 +813,14 @@ const Home: React.FC<HomeProps> = ({
               selectedConversation={selectedConversation}
               onNewConversation={handleNewConversation}
             />
+          </div>
+          <div className="fixed top-0 w-full bg-red-400 text-white">
+              Built with ❤️ by 
+              <a href="https://twitter.com/jcllobet" target="_blank">Jan</a>, 
+              <a href="https://twitter.com/chemocheese" target="_blank">Jonny</a>,
+              <a href="https://twitter.com/nolangclement" target="_blank">Nolan</a>,
+              and 
+              <a href="https://twitter.com/ykouloumbis" target="_blank">Yanni</a>
           </div>
 
           <div className="flex h-full w-full pt-[48px] sm:pt-0">

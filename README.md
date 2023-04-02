@@ -1,12 +1,21 @@
-# Keyless Chatbot UI
+# Keyless Chatbot UI with WindowAI
 
-Keyless Chatbot UI allows simplifies the connection between the Chatbot UI kit and any chat model (OpenAI, Cohere, GPT) by leveraging [ChatbotUI]() Frontend and [WindowAI]() decentralized LLM key handling. 
+Keyless Chatbot UI allows simplifies the connection between the Chatbot UI kit and any chat model (OpenAI, Cohere, GPT) by leveraging [ChatbotUI](https://github.com/mckaywrigley/chatbot-ui) Frontend and [WindowAI]()) decentralized LLM key handling. 
 
 The idea is that as an LLM App developer, you shouldn't have to care about what models are being used and what are the users credentials. This is a huge friction point at the moment given that you have to either pay for the credits upfront or add a section for users to paste their own key (with the associated trust issues).
 
 See a [demo]().
 
 ![Chatbot UI](./public/screenshot.png)
+
+
+
+## Built by:
+- [Jan 🚀](https://twitter.com/jcllobet)
+- [Jonny Xu 🦄](https://twitter.com/chemocheese)
+- [Nolan Clement 🥶](https://twitter.com/nolangclement)
+- [Yanni Kouloumbis 🐐](https://twitter.com/ykouloumbis)
+
 
 ## Updates
 
@@ -24,6 +33,8 @@ Given that those are all the models that WindowAI supports at the moment.
 - WindowAI --> integrate with window.ai --> (window as any).ai.getCompletion() -->
 - Display current model from async getCurrentModel(): Promise<LLM>
 - GPT4 potential support on LLM objects (for once he has it)
+
+
 
 ## Fo
 **Next up:**
@@ -61,9 +72,11 @@ Modify the system prompt in `utils/index.ts`.
 
 **Vercel**
 
+Live demo: [here]()
+
 Host your own live version of Chatbot UI with Vercel.
 
-[![Deploy with Vercel](https://vercel.com/button)]()
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YanniKouloumbis/chatbot-ui)
 
 **Replit**
 
@@ -72,20 +85,6 @@ Fork Chatbot UI on Replit [here]().
 **Docker**
 
 - Not yet supported. Open to contributions.
-
-
-Build locally:
-
-```shell
-docker build -t chatgpt-ui .
-docker run -e OPENAI_API_KEY=xxxxxxxx -p 3000:3000 chatgpt-ui
-```
-
-Pull from ghcr:
-
-```
-docker run -e OPENAI_API_KEY=xxxxxxxx -p 3000:3000 ghcr.io/mckaywrigley/chatbot-ui:main
-```
 
 ## Running Locally
 
@@ -119,12 +118,10 @@ You should be able to start chatting.
 
 When deploying the application, the following environment variables can be set:
 
-## Built by:
-- [Jan]()
-- [Jonny]()
-- [Nolan]()
-- [Yanni]()
+## Demo:
+
+We have a live demo of the site hosted on Vercel that you can check out [here] (https://chatbot-ui-alpha-six-31.vercel.app/)
 
 ## Contact
 
-If you have any questions, feel free to reach out to us on twitter: [Yanni](), [Nolan](), [Jan](), [Jonny]() or ping [Alex](), co-founder of [WindowAI]() and former CTO of OpenSea.
+If you have any questions, feel free to reach to join the [windowAI discord]() or ping [Yanni}() or [Alex](), co-founder of [WindowAI]() and former CTO of OpenSea.
