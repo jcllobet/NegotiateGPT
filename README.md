@@ -120,7 +120,7 @@ When deploying the application, the following environment variables can be set:
 
 ## Demo:
 
-We have a live demo of the site hosted on Vercel that you can check out [here] (https://chatbot-ui-alpha-six-31.vercel.app/)
+We have a live demo of the site hosted on Vercel that you can check out [here](https://chatbot-ui-alpha-six-31.vercel.app/)
 
 ## Contact
 
