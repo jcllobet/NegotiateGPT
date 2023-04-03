@@ -2,6 +2,7 @@ import { Chat } from '@/components/Chat/Chat';
 import { Chatbar } from '@/components/Chatbar/Chatbar';
 import { Navbar } from '@/components/Mobile/Navbar';
 import { Promptbar } from '@/components/Promptbar/Promptbar';
+import WindowNotInstalled from '@/components/Modals/WindowNotInstalled';
 
 import { ChatBody, Conversation, Message, WindowChatBody } from '@/types/chat';
 import { KeyValuePair } from '@/types/data';
@@ -90,6 +91,7 @@ import toast from 'react-hot-toast';
 
 enum LLM {
   GPT3 = "openai/gpt3.5",
+  GPT4 = "openai/gpt4",
   GPTNeo = "together/gpt-neoxt-20B",
   Cohere = "cohere/xlarge",
   Local = "local"
@@ -134,6 +136,7 @@ const Home: React.FC<HomeProps> = ({
   const [apiKey, setApiKey] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [timer, setTimer] = useState<any>();
+  const [windowIsInstalled, setWindowIsInstalled] = useState<boolean>(false);
   const [streamIsDone, setStreamIsDone] = useState<boolean>(false);
   const [lightMode, setLightMode] = useState<'dark' | 'light'>('dark');
   const [messageIsStreaming, setMessageIsStreaming] = useState<boolean>(false);
@@ -211,6 +214,7 @@ const Home: React.FC<HomeProps> = ({
       }
       enum LLM {
         GPT3 = "openai/gpt3.5",
+        GPT4 = "openai/gpt4",
         GPTNeo = "together/gpt-neoxt-20B",
         Cohere = "cohere/xlarge",
         Local = "local"
@@ -239,7 +243,7 @@ const Home: React.FC<HomeProps> = ({
             if(timer) clearTimeout(timer);
             setTimer(setTimeout(() => {
               setMessageIsStreaming(false);
-            }, 2000));
+            }, 1500));
 
             //get the last message
             console.log(result)
@@ -315,7 +319,7 @@ const Home: React.FC<HomeProps> = ({
         },
         options
       );
-
+      console.log(response)
       // const response = await fetch('/api/chat', {
       //   method: 'POST',
       //   headers: {
@@ -419,30 +423,43 @@ const Home: React.FC<HomeProps> = ({
   // }
   
   const LLMToOpenAIModel = {
-    GPT3: {
+    [LLM.GPT3]: {
       id: "gpt-3.5-turbo",
       name: "GPT-3.5",
       maxLength: 12000,
       tokenLimit: 3000,
     },
+    [LLM.GPT4]: {
+      id: "gpt-4",
+      name: "GPT-4",
+      maxLength: 12000,
+      tokenLimit: 3000,
+    },
+    [LLM.GPTNeo]: {
+      id: "gpt-neo-2.7B",
+      name: "GPT-Neo",
+      maxLength: 12000,
+      tokenLimit: 3000,
+    },
+    [LLM.Cohere]: {
+      id: "cohere",
+      name: "Cohere",
+      maxLength: 12000,
+      tokenLimit: 3000,
+    },
+    [LLM.Local]: {
+      id: "local",
+      name: "Local",
+      maxLength: 12000,
+      tokenLimit: 3000,
+    },
   }
-  //TODO support additional models
-  // enum LLM {
-  //   GPT3 = "openai/gpt3.5",
-  //   GPTNeo = "together/gpt-neoxt-20B",
-  //   Cohere = "cohere/xlarge",
-  //   Local = "local"
-  // }
   const fetchModels = async () => {
     let model: LLM = await (window as any).ai.getCurrentModel();
     console.log(model)
+    console.log(LLMToOpenAIModel[model])
     setModels([
-      {
-        id: "gpt-3.5-turbo",
-        name: model,
-        maxLength: 12000,
-        tokenLimit: 3000,
-      }
+      LLMToOpenAIModel[model]
     ]);
     //TODO: change MaxLength and tokenLimit to be dynamic
     setModelError(null);
@@ -725,7 +742,11 @@ const Home: React.FC<HomeProps> = ({
   }, [selectedConversation]);
 
   useEffect(() => {
+    if ((window as any)?.ai) {
+      setWindowIsInstalled(true);
       fetchModels();
+    }
+    else setWindowIsInstalled(false);
   }, []);
 
   // ON LOAD --------------------------------------------
@@ -737,7 +758,9 @@ const Home: React.FC<HomeProps> = ({
     }
 
     const apiKey = localStorage.getItem('apiKey');
-    fetchModels();
+    if ((window as any)?.ai) {
+      fetchModels();
+    }
 
     if (window.innerWidth < 640) {
       setShowSidebar(false);
@@ -795,6 +818,7 @@ const Home: React.FC<HomeProps> = ({
 
   return (
     <>
+      {!windowIsInstalled && <WindowNotInstalled />}
       <Head>
         <title>Chatbot UI with WindowAI</title>
         <meta name="description" content="ChatGPT but better." />
@@ -814,13 +838,13 @@ const Home: React.FC<HomeProps> = ({
               onNewConversation={handleNewConversation}
             />
           </div>
-          <div className="fixed top-0 w-full bg-red-400 text-white">
-              Built with ❤️ by 
-              <a href="https://twitter.com/jcllobet" target="_blank">Jan</a>, 
-              <a href="https://twitter.com/chemocheese" target="_blank">Jonny</a>,
-              <a href="https://twitter.com/nolangclement" target="_blank">Nolan</a>,
-              and 
-              <a href="https://twitter.com/ykouloumbis" target="_blank">Yanni</a>
+          <div className="hidden sm:flex w-full bg-gray-700 tracking-wide text-white font-thin justify-center">
+              Built&nbsp;with&nbsp;❤️&nbsp;by&nbsp;
+              <a className="hover:underline" href="https://twitter.com/jcllobet" target="_blank">Jan</a>,&nbsp;
+              <a className="hover:underline" href="https://twitter.com/chemocheese" target="_blank">Jonny</a>,&nbsp;
+              <a className="hover:underline" href="https://twitter.com/nolangclement" target="_blank">Nolan</a>, 
+              and&nbsp;
+              <a className="hover:underline" href="https://twitter.com/ykouloumbis" target="_blank">Yanni</a>.
           </div>
 
           <div className="flex h-full w-full pt-[48px] sm:pt-0">
@@ -848,7 +872,7 @@ const Home: React.FC<HomeProps> = ({
                 />
 
                 <button
-                  className="fixed top-5 left-[270px] z-50 h-7 w-7 hover:text-gray-400 dark:text-white dark:hover:text-gray-300 sm:top-0.5 sm:left-[270px] sm:h-8 sm:w-8 sm:text-neutral-700"
+                  className="fixed top-5 left-[270px] z-50 h-7 w-7 hover:text-gray-400 dark:text-white dark:hover:text-gray-300 sm:top-5 sm:left-[270px] sm:h-8 sm:w-8 sm:text-neutral-700"
                   onClick={handleToggleChatbar}
                 >
                   <IconArrowBarLeft />
@@ -860,7 +884,7 @@ const Home: React.FC<HomeProps> = ({
               </div>
             ) : (
               <button
-                className="fixed top-2.5 left-4 z-50 h-7 w-7 text-white hover:text-gray-400 dark:text-white dark:hover:text-gray-300 sm:top-0.5 sm:left-4 sm:h-8 sm:w-8 sm:text-neutral-700"
+                className="fixed top-2.5 left-4 z-50 h-7 w-7 text-white hover:text-gray-400 dark:text-white dark:hover:text-gray-300 sm:top-5 sm:left-4 sm:h-8 sm:w-8 sm:text-neutral-700"
                 onClick={handleToggleChatbar}
               >
                 <IconArrowBarRight />
@@ -898,7 +922,7 @@ const Home: React.FC<HomeProps> = ({
                   onUpdateFolder={handleUpdateFolder}
                 />
                 <button
-                  className="fixed top-5 right-[270px] z-50 h-7 w-7 hover:text-gray-400 dark:text-white dark:hover:text-gray-300 sm:top-0.5 sm:right-[270px] sm:h-8 sm:w-8 sm:text-neutral-700"
+                  className="fixed top-5 right-[270px] z-50 h-7 w-7 hover:text-gray-400 dark:text-white dark:hover:text-gray-300 sm:top-5 sm:right-[270px] sm:h-8 sm:w-8 sm:text-neutral-700"
                   onClick={handleTogglePromptbar}
                 >
                   <IconArrowBarRight />
@@ -910,7 +934,7 @@ const Home: React.FC<HomeProps> = ({
               </div>
             ) : (
               <button
-                className="fixed top-2.5 right-4 z-50 h-7 w-7 text-white hover:text-gray-400 dark:text-white dark:hover:text-gray-300 sm:top-0.5 sm:right-4 sm:h-8 sm:w-8 sm:text-neutral-700"
+                className="fixed top-2.5 right-4 z-50 h-7 w-7 text-white hover:text-gray-400 dark:text-white dark:hover:text-gray-300 sm:top-5 sm:right-4 sm:h-8 sm:w-8 sm:text-neutral-700"
                 onClick={handleTogglePromptbar}
               >
                 <IconArrowBarLeft />
