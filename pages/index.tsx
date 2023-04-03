@@ -761,11 +761,11 @@ const Home: React.FC<HomeProps> = ({
 
   useEffect(() => {
     console.log(window);
-    if ((window as any)?.ai) {
+    if ((window as any).ai) {
+      console.log("window.ai exists")
       setWindowIsInstalled(true);
       fetchModels();
     }
-    else setWindowIsInstalled(false);
   }, []);
 
   // ON LOAD --------------------------------------------
