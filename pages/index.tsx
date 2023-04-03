@@ -760,12 +760,13 @@ const Home: React.FC<HomeProps> = ({
   }, [selectedConversation]);
 
   useEffect(() => {
-    console.log(window);
-    if ((window as any).ai) {
-      console.log("window.ai exists")
-      setWindowIsInstalled(true);
-      fetchModels();
-    }
+    const interval = setInterval(() => {
+      if ((window as any).ai) {
+        setWindowIsInstalled(true);
+        fetchModels();
+      }
+    }, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   // ON LOAD --------------------------------------------
