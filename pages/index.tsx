@@ -765,7 +765,7 @@ const Home: React.FC<HomeProps> = ({
       fetchModels();
     }
     else setWindowIsInstalled(false);
-  }, []);
+  }, [window]);
 
   // ON LOAD --------------------------------------------
 
