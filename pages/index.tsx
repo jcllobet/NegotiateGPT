@@ -236,9 +236,9 @@ const Home: React.FC<HomeProps> = ({
         onStreamResult: (result: Output | null, error: string | null) => {
           if (error) {
             console.error(error);
+            setLoading(false);
           } else if (result) {
-            setLoading(false)
-
+            setLoading(false);
             //timer logic
             if(timer) clearTimeout(timer);
             setTimer(setTimeout(() => {
@@ -307,19 +307,24 @@ const Home: React.FC<HomeProps> = ({
       if( !(window as any).ai ) return;
       console.log(updatedConversation.prompt)
       console.log(updatedConversation.messages)
-      const response = await (window as any).ai.getCompletion(
-        {
-          messages: [
-            {
-              role: 'system',
-              content: updatedConversation.prompt,
-            },
-            ...updatedConversation.messages,
-          ],
-        },
-        options
-      );
-      console.log(response)
+      try {
+        //will throw if user denies request from window.ai
+        const response = await (window as any).ai.getCompletion(
+          {
+            messages: [
+              {
+                role: 'system',
+                content: updatedConversation.prompt,
+              },
+              ...updatedConversation.messages,
+            ],
+          },
+          options
+        );
+        console.log(response)
+      } catch (e) {
+        console.error(e)
+      }
       // const response = await fetch('/api/chat', {
       //   method: 'POST',
       //   headers: {
@@ -456,8 +461,6 @@ const Home: React.FC<HomeProps> = ({
   }
   const fetchModels = async () => {
     let model: LLM = await (window as any).ai.getCurrentModel();
-    console.log(model)
-    console.log(LLMToOpenAIModel[model])
     setModels([
       LLMToOpenAIModel[model]
     ]);
