@@ -336,6 +336,7 @@ const Home: React.FC<HomeProps> = ({
 
         setSelectedConversation(updatedConversation);
         setLoading(false);
+        setMessageIsStreaming(false);
       } catch (e) {
         console.error(e)
       }
