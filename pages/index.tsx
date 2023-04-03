@@ -760,12 +760,13 @@ const Home: React.FC<HomeProps> = ({
   }, [selectedConversation]);
 
   useEffect(() => {
+    console.log(window);
     if ((window as any)?.ai) {
       setWindowIsInstalled(true);
       fetchModels();
     }
     else setWindowIsInstalled(false);
-  }, [window]);
+  }, []);
 
   // ON LOAD --------------------------------------------
 
