@@ -233,58 +233,57 @@ const Home: React.FC<HomeProps> = ({
       const options: WindowAICompletionOptions = {
         temperature: 1,
         maxTokens: 1000,
-        // commented until alex fixes streaming
-        // onStreamResult: (result: Output | null, error: string | null) => {
-        //   if (error) {
-        //     console.error(error);
-        //     setLoading(false);
-        //   } else if (result) {
-        //     setLoading(false);
-        //     //timer logic
-        //     if(timer) clearTimeout(timer);
-        //     setTimer(setTimeout(() => {
-        //       setMessageIsStreaming(false);
-        //     }, 1500));
+        onStreamResult: (result: Output | null, error: string | null) => {
+          if (error) {
+            console.error(error);
+            setLoading(false);
+          } else if (result) {
+            setLoading(false);
+            //timer logic
+            if(timer) clearTimeout(timer);
+            setTimer(setTimeout(() => {
+              setMessageIsStreaming(false);
+            }, 1500));
 
-        //     //get the last message
-        //     console.log(result)
-        //     const lastMessage = updatedConversation.messages[
-        //       updatedConversation.messages.length - 1
-        //     ];
-        //     if(lastMessage.role === 'user') {
-        //       setLoading(false)
-        //       //if the last message is a user, add the result as a system message
-        //       updatedConversation.messages = [
-        //         ...updatedConversation.messages,
-        //         {
-        //           role: 'assistant',
-        //           content: (result as any).message.content,
-        //         },
-        //       ];
-        //     } else {
-        //       //if the last message is a system message, add the result to the last message
-        //       const updatedMessages: Message[] = updatedConversation.messages.map(
-        //         (message, index) => {
-        //           if (index === updatedConversation.messages.length - 1) {
-        //             // if the message is the last message is a user 
-        //             return {
-        //               ...message,
-        //               //we didn't know why this wasn't working :( don't flame us
-        //               content: message.content + (result as any).message.content,
-        //             };
-        //           }
-        //           return message;
-        //         }
-        //       );
-        //       updatedConversation = {
-        //               ...updatedConversation,
-        //               messages: updatedMessages,
-        //             };
-        //     }
+            //get the last message
+            console.log(result)
+            const lastMessage = updatedConversation.messages[
+              updatedConversation.messages.length - 1
+            ];
+            if(lastMessage.role === 'user') {
+              setLoading(false)
+              //if the last message is a user, add the result as a system message
+              updatedConversation.messages = [
+                ...updatedConversation.messages,
+                {
+                  role: 'assistant',
+                  content: (result as any).message.content,
+                },
+              ];
+            } else {
+              //if the last message is a system message, add the result to the last message
+              const updatedMessages: Message[] = updatedConversation.messages.map(
+                (message, index) => {
+                  if (index === updatedConversation.messages.length - 1) {
+                    // if the message is the last message is a user 
+                    return {
+                      ...message,
+                      //we didn't know why this wasn't working :( don't flame us
+                      content: message.content + (result as any).message.content,
+                    };
+                  }
+                  return message;
+                }
+              );
+              updatedConversation = {
+                      ...updatedConversation,
+                      messages: updatedMessages,
+                    };
+            }
             
-        //     setSelectedConversation(updatedConversation);
-        //   }
-        // },
+            setSelectedConversation(updatedConversation);
+          }
+        },
       }; 
     
 
@@ -324,19 +323,6 @@ const Home: React.FC<HomeProps> = ({
         );
         console.log(response)
         // TEMPORARY UNTIL STREAMING IS FIXED
-        const updatedMessages: Message[] = [
-          ...updatedConversation.messages,
-          { role: 'assistant', content: response.message.content },
-        ];
-
-        updatedConversation = {
-          ...updatedConversation,
-          messages: updatedMessages,
-        };
-
-        setSelectedConversation(updatedConversation);
-        setLoading(false);
-        setMessageIsStreaming(false);
       } catch (e) {
         console.error(e)
       }
@@ -760,6 +746,10 @@ const Home: React.FC<HomeProps> = ({
   }, [selectedConversation]);
 
   useEffect(() => {
+    if ((window as any).ai) {
+      setWindowIsInstalled(true);
+      fetchModels();
+    }
     const interval = setInterval(() => {
       if ((window as any).ai) {
         setWindowIsInstalled(true);
