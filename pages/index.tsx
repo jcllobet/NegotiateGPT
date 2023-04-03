@@ -324,6 +324,8 @@ const Home: React.FC<HomeProps> = ({
         console.log(response)
         // TEMPORARY UNTIL STREAMING IS FIXED
       } catch (e) {
+        setLoading(false);
+        setMessageIsStreaming(false);
         console.error(e)
       }
       // const response = await fetch('/api/chat', {
