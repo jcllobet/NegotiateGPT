@@ -832,8 +832,8 @@ const Home: React.FC<HomeProps> = ({
     <>
       {!windowIsInstalled && <WindowNotInstalled />}
       <Head>
-        <title>Chatbot UI with WindowAI</title>
-        <meta name="description" content="ChatGPT but better." />
+        <title>NegotiateGPT</title>
+        <meta name="description" content="Practice your software engineering interviews" />
         <meta
           name="viewport"
           content="height=device-height ,width=device-width, initial-scale=1, user-scalable=no"
