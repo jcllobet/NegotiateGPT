@@ -5,6 +5,11 @@ const nextConfig = {
   i18n,
   reactStrictMode: true,
 
+  // Add images configuration
+  images: {
+    domains: ['i.imgflip.com'],
+  },
+
   webpack(config, { isServer, dev }) {
     config.experiments = {
       asyncWebAssembly: true,
