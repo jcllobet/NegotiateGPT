@@ -4,7 +4,7 @@ Keyless Chatbot UI allows simplifies the connection between the Chatbot UI kit a
 
 The idea is that as an LLM App developer, you shouldn't have to care about what models are being used and what are the users credentials. This is a huge friction point at the moment given that you have to either pay for the credits upfront or add a section for users to paste their own key (with the associated trust issues).
 
-See a [demo]().
+Demo (WIP!) 🔜 
 
 ![Chatbot UI](./public/screenshot.png)
 
@@ -72,7 +72,7 @@ Modify the system prompt in `utils/index.ts`.
 
 **Vercel**
 
-Live demo: [here]()
+Live demo: wip 🔜 
 
 Host your own live version of Chatbot UI with Vercel.
 
